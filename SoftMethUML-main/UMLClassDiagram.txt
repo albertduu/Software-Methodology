@@ -1,0 +1,155 @@
+@startuml
+
+interface Notifiable {
+  + sendEmail(subject:String, body:String): void
+}
+
+class User {
+  - String userId
+  - String username
+  - String email
+  - LocalDateTime createdAt
+  - boolean active
+  + sendEmail(subject:String, body:String): void
+  + createForum(name:String, description:String): Forum
+  + joinForum(f:Forum): Membership
+  + leaveForum(f:Forum): void
+  + createThread(f:Forum, subject:String, body:String): DiscussionThread
+  + postMessage(t:DiscussionThread, body:String): Message
+  + acceptInvitation(inv:Invitation): void
+  + rejectInvitation(inv:Invitation): void
+}
+
+class Forum {
+  - String forumId
+  - String name
+  - String description
+  - boolean requiresApproval
+  - User owner
+  - User moderator
+  + invite(user:User, type:InviteType): Invitation
+  + addMember(u:User): Membership
+  + removeMember(u:User): void
+  + createThread(initiator:User, subject:String, body:String): DiscussionThread
+  + findMessages(filter:MessageFilter, sort:MessageSort): List<Message>
+  + deleteForum(): void
+}
+
+class Membership {
+  - String membershipId
+  - User member
+  - Forum forum
+  - LocalDateTime joinedAt
+  - Role role
+  + leave(): void
+}
+
+class DiscussionThread {
+  - String threadId
+  - Forum forum
+  - User initiator
+  - String subject
+  - LocalDateTime createdAt
+  + addMessage(msg:Message): void
+  + getMessages(filter:MessageFilter, sort:MessageSort): List<Message>
+}
+
+class Message {
+  - String messageId
+  - DiscussionThread thread
+  - User author
+  - String body
+  - LocalDateTime postedAt
+  - MessageStatus status
+  + edit(newBody:String): void
+  + approve(moderator:User): void
+  + deny(moderator:User): void
+}
+
+class Invitation {
+  - String inviteId
+  - Forum forum
+  - User sender
+  - User recipient
+  - InviteType type
+  - LocalDateTime sentAt
+  - InvitationStatus status
+  + accept(): void
+  + reject(): void
+}
+
+class ModerationPolicy {
+  - boolean requireApprovalForNewMessages
+  + evaluate(msg:Message): boolean
+}
+
+class MessageFilter {
+  + Optional<User> byAuthor
+  + Optional<String> byThreadSubject
+  + Optional<LocalDate> fromDate
+  + Optional<LocalDate> toDate
+}
+
+enum Role {
+  Owner
+  Moderator
+  Member
+}
+
+enum MessageStatus {
+  Pending
+  Visible
+  Denied
+}
+
+enum InvitationStatus {
+  Sent 
+  Accepted 
+  Rejected 
+  Expired
+}
+
+enum InviteType {
+  Join_forum
+  Make_moderator
+  Give_owner
+}
+
+enum MessageSort {
+  By_Date_Ascending
+  By_Date_Descending
+  By_Author_Ascending
+  By_Author_Descending
+}
+
+User ..|> Notifiable
+Forum "1" o-- "0..*" Membership : members
+Forum "1" o-- "0..*" DiscussionThread : threads
+DiscussionThread "1" *-- "1..*" Message : messages
+User "1" --> "0..*" Message : author
+Forum "1" -right-> "1" User : owner
+Forum "1" -right-> "1" User : moderator
+Forum "1" --> "0..*" Invitation : invitations
+Invitation "1" --> "1" Forum
+Invitation "1" --> "1" User : recipient
+Membership "1" --> "1" User
+Membership "1" --> "1" Forum
+
+@enduml
+
+Data Structure                                              | Class
+-----------------------------------------------------------------------------------------
+ArrayList<Forum> forums                                     | Website
+HashMap<String, Forum> forumById                             | Website
+ArrayList<Membership> members                                 | Forum
+HashMap<String, Membership> membershipByUserId                | Forum
+ArrayList<DiscussionThread> threads                           | Forum
+HashMap<String, DiscussionThread> threadById                  | Forum
+LinkedList<Message> messages                                  | DiscussionThread
+ArrayList<Message> messageList                                | DiscussionThread 
+ArrayList<Invitation> invitations                             | Forum
+HashMap<String, Invitation> invitationById                    | Forum
+ArrayList<Message> visibleMessagesCache                       | Forum 
+ArrayList<User> moderatorsHistory                             | Forum 
+ArrayList<User> createdForums                                  | User  (forums the user created)
+ArrayList<Membership> memberships                             | User

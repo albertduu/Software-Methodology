@@ -1,0 +1,14 @@
+{
+    "remote.SSH.remotePlatform": {
+        "top.cs.rutgers.edu": "linux"
+    },
+    "remote.portsAttributes": {
+        "3000": {
+            "protocol": "https"
+        }
+    },
+
+    "plantuml.render": "Local",
+    "plantuml.jar": "C:\\Users\\alber\\Downloads\\plantuml-1.2025.9.jar",
+    "plantuml.trace.server": "verbose"
+}
